@@ -11,7 +11,6 @@ def distorsio_element(coords_tri):
     
     Dphi = J @ W
     
-    # Optimització: determinant i norma de Frobenius 
     det_Dphi = Dphi[0, 0] * Dphi[1, 1] - Dphi[0, 1] * Dphi[1, 0]
     frob_sq = np.sum(Dphi**2) 
     
