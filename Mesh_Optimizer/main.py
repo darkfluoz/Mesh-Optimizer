@@ -1,61 +1,61 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from mesh            import X,T,Nint,plotMesh,dofsToCoords,coordsToDofs
-from differentiation import derivadaNumerica,hessianaNumerica
-from distortion      import calculaDistorsioMalla
+from differentiation import gradient_num, hessian_num
+from distortion import distorsio_total
+from mesh import X_nodes, T_elements, N_INT, mostra_malla, empaqueta_dofs, desempaqueta_dofs
 
-# Mostrar malla inicial
-plotMesh(X,'Initial mesh')
+print("--- Inici de l'optimització de la malla ---")
+mostra_malla(X_nodes, 'Malla Inicial Distorsionada')
 
-res = calculaDistorsioMalla(X, T)
-print('Distorsio inicial: ',res)
+dist_ini = distorsio_total(X_nodes, T_elements)
+print(f'Distorsió inicial: {dist_ini:.6f}')
 
-# Convertir les coordenades de la malla a un vector amb dofs
-y = coordsToDofs(X)
-def F(y):
-  return calculaDistorsioMalla(dofsToCoords(y),T)
+# Funció objectiu 
+def funcio_objectiu(y):
+    return distorsio_total(desempaqueta_dofs(y), T_elements)
 
-def newton_raphson(F, y0, tol_errR, max_iter):
-    y = y0
-    errors = []
-    for k in range(max_iter):
-        Ry = derivadaNumerica(F,y)
-        Hy = hessianaNumerica(F,y)
-        delta = np.linalg.solve(Hy, -Ry)
-        y_new = y + delta
-        err = np.linalg.norm(delta, ord=2)/np.linalg.norm(y_new, ord = 2)
-        errors.append(err)
-        if err < tol_errR:
-            return y_new, k+1, errors
-        y = y_new
-    raise RuntimeError("El mètode no ha convergit")
+def newton_raphson(F, y0, tol=5e-8, max_it=50):
+    y_curr = y0
+    historial_errors = []
+    
+    for k in range(max_it):
+        g = gradient_num(F, y_curr)
+        H = hessian_num(F, y_curr)
+        
+        # Resolució del sistema lineal
+        delta = np.linalg.solve(H, -g)
+        y_next = y_curr + delta
+        
+        error = np.linalg.norm(delta) / np.linalg.norm(y_next)
+        historial_errors.append(error)
+        
+        if error < tol:
+            return y_next, k + 1, historial_errors
+            
+        y_curr = y_next
+        
+    raise RuntimeError("Newton-Raphson no ha convergit en el nombre màxim d'iteracions.")
 
-# Condicions inicials per Newton-Raphson
-y0 = coordsToDofs(X)
+y0 = empaqueta_dofs(X_nodes)
 
-# Executar Newton-Raphson
-y_opt, iters, errors = newton_raphson(F, y0, tol_errR=5e-8, max_iter=50)
+# Executem el mètode
+y_opt, iteracions, errors = newton_raphson(funcio_objectiu, y0)
 
-# Reconstruir la malla final
-X_final = dofsToCoords(y_opt)
+X_final = desempaqueta_dofs(y_opt)
 
-# Dibuixar la malla final
-plotMesh(X_final, "Malla final")
+mostra_malla(X_final, "Malla Final Optimitzada")
 
-# Valor del primer node interior (fila 0 de la matriu X_final)
-print("Primer node interior (malla final):", X_final[0,:])
+print(f"Nodes resolts en {iteracions} iteracions.")
+print(f"Distorsió final: {distorsio_total(X_final, T_elements):.6f}")
+print(f"Coordenada del primer node interior optimitzat: {X_final[0,:]}")
 
-# Valor de la distorsió final
-print("Distorsió final:", calculaDistorsioMalla(X_final, T))
-# X = dofsToCoords(np.ones(y.shape))
-
-for i in errors:
-    plt.plot(errors)
-plt.plot(np.arange(0,iters),errors, 'k*')
-plt.yscale('log')  # Logaritme dels errors
-plt.xlabel('Número iteracions k')
-plt.ylabel('log(r^k)')
+# Gràfica d'error netejada
+plt.figure()
+plt.plot(range(iteracions), errors, 'k*-')
+plt.yscale('log')
+plt.xlabel('Número iteració k')
+plt.ylabel('Error Relatiu log(r^k)')
+plt.title('Convergència Newton-Raphson')
+plt.grid(True, linestyle='--', alpha=0.6)
 plt.show()
-
-print("Iteracions: ", iters)
