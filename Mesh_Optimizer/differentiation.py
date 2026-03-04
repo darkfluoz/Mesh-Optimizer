@@ -1,77 +1,73 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
-def derivadaNumerica(F,x):
-    n = len(x)
-    dF = np.zeros(n)
+def gradient_num(func, x_val):
+    n = len(x_val)
+    grad = np.zeros(n)
     eps = 4.64e-6
-    A = np.array([x,0.5*np.ones(n)],dtype=float)
-    ex = eps*np.max( A,axis = 0)
     
-    temp = x.copy() +  ex 
-    ex   = temp.copy() - x.copy()
-        
+    # Càlcul vectorial de l'increment (més net que crear matrius A)
+    dx = eps * np.maximum(np.abs(x_val), 0.5)
+    
     for i in range(n):
-        xi_ini = x[i].copy()
+        x_orig = x_val[i]
         
-        x[i] = xi_ini + ex[i]
-        F_plus = F(x)
-        x[i] = xi_ini - ex[i]
-        F_minus = F(x)
-        dF[i] = (F_plus - F_minus)/(2*ex[i])
+        x_val[i] = x_orig + dx[i]
+        f_plus = func(x_val)
         
-        x[i] = xi_ini
-    return dF
+        x_val[i] = x_orig - dx[i]
+        f_minus = func(x_val)
+        
+        grad[i] = (f_plus - f_minus) / (2 * dx[i])
+        x_val[i] = x_orig
+        
+    return grad
 
-
-def hessianaNumerica(F,x):
-    n = len(x)
-    H = np.zeros((n,n))
+def hessian_num(func, x_val):
+    n = len(x_val)
+    H = np.zeros((n, n))
     eps = 1e-4
-    A = np.array([x,0.5*np.ones(n)],dtype=float)
-    ex = eps*np.max( A,axis = 0)
+    dx = eps * np.maximum(np.abs(x_val), 0.5)
     
-    temp = x.copy() +  ex 
-    ex   = temp.copy() - x.copy()
-        
-    Fx = F(x)
+    f_val = func(x_val)
     
     for i in range(n):
+        xi_orig = x_val[i]
         
-        xi_ini = x[i].copy()
+        x_val[i] = xi_orig + dx[i]
+        f_plus = func(x_val)
         
-        x[i] = xi_ini + ex[i]
-        F_plus = F(x)
+        x_val[i] = xi_orig - dx[i]
+        f_minus = func(x_val)
         
-        x[i] = xi_ini - ex[i]
-        F_minus = F(x)
-    
-        H[i,i] = (F_plus - 2*Fx + F_minus)/(ex[i]**2)
-        
-        x[i] = xi_ini
+        H[i, i] = (f_plus - 2 * f_val + f_minus) / (dx[i]**2)
+        x_val[i] = xi_orig
         
         for j in range(i):
-            xi_ini = x[i].copy()
-            xj_ini = x[j].copy()
+            xj_orig = x_val[j]
             
-            x[i] = xi_ini - ex[i]
-            x[j] = xj_ini - ex[j]
-            Fx_mm = F(x)
+            x_val[i] = xi_orig - dx[i]
+            x_val[j] = xj_orig - dx[j]
+            f_mm = func(x_val)
             
-            x[i] = xi_ini + ex[i]
-            x[j] = xj_ini - ex[j]
-            Fx_pm = F(x)
+            x_val[i] = xi_orig + dx[i]
+            x_val[j] = xj_orig - dx[j]
+            f_pm = func(x_val)
             
-            x[i] = xi_ini - ex[i]
-            x[j] = xj_ini + ex[j]
-            Fx_mp = F(x)
+            x_val[i] = xi_orig - dx[i]
+            x_val[j] = xj_orig + dx[j]
+            f_mp = func(x_val)
             
-            x[i] = xi_ini + ex[i]
-            x[j] = xj_ini + ex[j]
-            Fx_pp = F(x)
+            x_val[i] = xi_orig + dx[i]
+            x_val[j] = xj_orig + dx[j]
+            f_pp = func(x_val)
             
-            H[i,j] = (Fx_pp - Fx_pm - Fx_mp + Fx_mm)/(4*ex[i]*ex[j])
-            H[j,i] = H[i,j]
+            H[i, j] = (f_pp - f_pm - f_mp + f_mm) / (4 * dx[i] * dx[j])
+            H[j, i] = H[i, j]
+            
+            x_val[i] = xi_orig
+            x_val[j] = xj_orig
+            
+    return H
             
             x[i] = xi_ini
             x[j] = xj_ini
