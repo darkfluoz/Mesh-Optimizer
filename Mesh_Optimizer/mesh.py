@@ -1,12 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# 6 nodes interiors + 14 nodes frontera = 20 nodes
+
 N_INT = 6
 
 # Coordenades explícites de la malla. 
-# Els primers 6 són els interiors (descol·locats a propòsit perquè l'optimitzador treballi).
-# Els últims 14 formen un perímetre rectangular perfecte.
+
 X_nodes = np.array([
     # --- Nodes interiors (Distorsionats) ---
     [0.5, 0.5],  # Node 0 (La posició òptima serà 1,1)
@@ -23,7 +22,7 @@ X_nodes = np.array([
     [0.0, 2.0], [0.0, 1.0]                                      # 18 a 19 (Esquerra)
 ], dtype=float)
 
-# 24 Triangles connectant els nodes
+# Triangles connectant els nodes
 T_elements = np.array([
     [6, 7, 0], [6, 0, 19],     # Quadrat 1 (A baix - esquerra)
     [7, 8, 1], [7, 1, 0],      # Quadrat 2
