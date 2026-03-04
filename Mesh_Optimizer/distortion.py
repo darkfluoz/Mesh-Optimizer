@@ -1,6 +1,6 @@
 import numpy as np
 
-# Matriu de mapeig per al triangle equilàter de referència
+# Matriu de mapeig per al triangle equilàter
 W = np.array([[1.0, -np.sqrt(3.0) / 3.0], 
               [0.0,  2.0 * np.sqrt(3.0) / 3.0]], dtype=float)
 
@@ -11,7 +11,7 @@ def distorsio_element(coords_tri):
     
     Dphi = J @ W
     
-    # Optimització: determinant i norma de Frobenius explícita (més ràpid per matrius 2x2)
+    # Optimització: determinant i norma de Frobenius 
     det_Dphi = Dphi[0, 0] * Dphi[1, 1] - Dphi[0, 1] * Dphi[1, 0]
     frob_sq = np.sum(Dphi**2) 
     
