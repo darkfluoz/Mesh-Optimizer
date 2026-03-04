@@ -5,7 +5,7 @@ def gradient_num(func, x_val):
     grad = np.zeros(n)
     eps = 4.64e-6
     
-    # Càlcul vectorial de l'increment (més net que crear matrius A)
+    # Càlcul vectorial de l'increment
     dx = eps * np.maximum(np.abs(x_val), 0.5)
     
     for i in range(n):
